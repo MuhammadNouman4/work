@@ -42,7 +42,7 @@ function renderGrid(){
     return;
   }
   grid.innerHTML = list.map((p, i) => `
-    <div class="card" data-index="${projects.indexOf(p)}">
+    <div class="card reveal" data-index="${projects.indexOf(p)}">
       <div class="card-media">
         <span class="card-tc">${timecode(i + 1)}</span>
         <img src="assets/img/portfolio/${p.image}" alt="${p.title}" loading="lazy" />
@@ -56,6 +56,7 @@ function renderGrid(){
   grid.querySelectorAll(".card").forEach(card => {
     card.addEventListener("click", () => openModal(projects[card.dataset.index]));
   });
+  observeReveals();
 }
 
 function openModal(p){
@@ -106,3 +107,25 @@ const navLinks = document.getElementById("navLinks");
 navToggle?.addEventListener("click", () => {
   navLinks.style.display = navLinks.style.display === "flex" ? "none" : "flex";
 });
+
+// Scroll reveal
+const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+function observeReveals(){
+  const targets = document.querySelectorAll(".reveal:not(.in-view)");
+  if (!targets.length) return;
+  if (prefersReducedMotion){
+    targets.forEach(t => t.classList.add("in-view"));
+    return;
+  }
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting){
+        entry.target.style.transitionDelay = `${(i % 6) * 60}ms`;
+        entry.target.classList.add("in-view");
+        io.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12, rootMargin: "0px 0px -40px 0px" });
+  targets.forEach(t => io.observe(t));
+}
+observeReveals();
